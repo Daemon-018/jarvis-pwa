@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import {
   Send, Mic, MicOff, Plus, MessageSquare, Settings, Trash2,
   Zap, Menu, X, Sun, Moon, Sparkles, LayoutDashboard, Edit3,
-  Clock, Wifi, WifiOff, ChevronRight
+  Wifi, WifiOff, ChevronRight
 } from 'lucide-react'
 import './App.css'
 
@@ -166,9 +166,7 @@ function App() {
   }, [activeId])
 
   // Open Hermes Dashboard
-  const openDashboard = useCallback(() => {
-    window.open(dashboardUrl, '_blank')
-  }, [dashboardUrl])
+  // (using <a> tag directly in JSX now, no need for function)
 
   // Send message
   const sendMessage = useCallback(async (text: string) => {
