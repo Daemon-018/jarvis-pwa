@@ -44,6 +44,7 @@ function App() {
   const [dashboardUrl, setDashboardUrl] = useState(() => localStorage.getItem('jarvis-dashboard-url') || 'http://localhost:9119')
   const chatEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const touchStartRef = useRef<number | null>(null)
 
   // Check Hermes connection
   useEffect(() => {
@@ -81,6 +82,25 @@ function App() {
   useEffect(() => {
     localStorage.setItem('jarvis-dashboard-url', dashboardUrl)
   }, [dashboardUrl])
+
+  // Auto-create new chat on first launch
+  useEffect(() => {
+    if (!activeId && sessions.length === 0) {
+      const session: ChatSession = {
+        id: Date.now().toString(),
+        title: 'New Chat',
+        messages: [{
+          id: '1',
+          role: 'assistant',
+          content: 'Hello! I\'m J.A.R.V.I.S., your AI assistant. How can I help you today?',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }],
+        createdAt: new Date().toLocaleDateString(),
+      }
+      setSessions([session])
+      setActiveId(session.id)
+    }
+  }, [])
 
   // Auto-scroll
   useEffect(() => {
@@ -258,7 +278,23 @@ function App() {
 
   // ─── RENDER ──────────────────────────────────────
   return (
-    <div className={`app ${darkMode ? 'dark' : 'light'}`}>
+    <div
+      className={`app ${darkMode ? 'dark' : 'light'}`}
+      onTouchStart={(e) => { touchStartRef.current = e.touches[0].clientX }}
+      onTouchEnd={(e) => {
+        if (touchStartRef.current === null) return
+        const diff = touchStartRef.current - e.changedTouches[0].clientX
+        // Swipe right (open sidebar) from left edge
+        if (diff < -80 && touchStartRef.current < 40) {
+          setSidebarOpen(true)
+        }
+        // Swipe left (close sidebar)
+        if (diff > 80 && sidebarOpen) {
+          setSidebarOpen(false)
+        }
+        touchStartRef.current = null
+      }}
+    >
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
       {/* ─── Sidebar ─── */}
