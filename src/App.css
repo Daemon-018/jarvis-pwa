@@ -74,15 +74,29 @@ body { font-family: var(--font-main); background: var(--bg-primary); color: var(
   padding: 12px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-text {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--accent);
+}
+
 .btn-new-chat {
-  flex: 1;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
+  margin: 0 12px 8px;
   background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -90,6 +104,7 @@ body { font-family: var(--font-main); background: var(--bg-primary); color: var(
   font-size: 13px;
   cursor: pointer;
   transition: all var(--transition);
+  width: calc(100% - 24px);
 }
 .btn-new-chat:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--accent); }
 
@@ -106,6 +121,23 @@ body { font-family: var(--font-main); background: var(--bg-primary); color: var(
   color: var(--text-muted);
   font-size: 12px;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.session-group {
+  margin-bottom: 4px;
+}
+
+.group-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 12px 4px;
 }
 
 .session-item {
@@ -157,6 +189,59 @@ body { font-family: var(--font-main); background: var(--bg-primary); color: var(
   transition: all var(--transition);
 }
 .btn-sidebar-action:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.chevron { margin-left: auto; opacity: 0.4; }
+
+/* Sidebar Connection Status */
+.sidebar-connection {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+.sidebar-connection.connected { color: var(--success); }
+.sidebar-connection.disconnected { color: var(--text-muted); }
+
+/* Header Status */
+.header-status {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.header-status.connected {
+  background: rgba(0,255,136,0.15);
+  color: var(--success);
+}
+.header-status.offline {
+  background: rgba(255,51,68,0.1);
+  color: var(--danger);
+}
+
+.header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* System Prompt */
+.system-prompt-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-main);
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color var(--transition);
+}
+.system-prompt-input:focus { border-color: var(--accent); }
 
 /* ─── Main Chat Area ─── */
 .main {

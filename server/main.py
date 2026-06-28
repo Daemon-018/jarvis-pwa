@@ -36,15 +36,16 @@ def check_hermes():
         return False
 
 
-def chat_via_hermesis(messages):
+def chat_via_hermesis(messages, custom_prompt=""):
     """Send chat through Hermes agent API with full tool access."""
+    prompt = custom_prompt if custom_prompt else SYSTEM_PROMPT
     headers = {
         "Authorization": f"Bearer {HERMES_KEY}",
         "Content-Type": "application/json",
     }
 
     # Build OpenAI-compatible format
-    api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    api_messages = [{"role": "system", "content": prompt}]
     for msg in messages:
         if msg.get("role") in ("user", "assistant") and msg.get("content"):
             api_messages.append({"role": msg["role"], "content": msg["content"]})
@@ -72,8 +73,9 @@ def chat_via_hermesis(messages):
         return None
 
 
-def chat_via_openrouter(messages):
+def chat_via_openrouter(messages, custom_prompt=""):
     """Fallback: direct OpenRouter API call (no tools)."""
+    prompt = custom_prompt if custom_prompt else SYSTEM_PROMPT
     api_key = OPENROUTER_KEY
     if not api_key:
         # Try loading from Hermes .env
@@ -88,7 +90,7 @@ def chat_via_openrouter(messages):
     if not api_key:
         return {"response": "No API key configured. Set OPENROUTER_API_KEY or start Hermes gateway.", "error": "no_key"}
 
-    api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    api_messages = [{"role": "system", "content": prompt}]
     for msg in messages:
         if msg.get("role") in ("user", "assistant") and msg.get("content"):
             api_messages.append({"role": msg["role"], "content": msg["content"]})
@@ -142,18 +144,19 @@ def health():
 def chat():
     data = request.json or {}
     messages = data.get("messages", [])
+    custom_prompt = data.get("system_prompt", "")
 
     if not messages:
         return jsonify({"error": "No messages provided"}), 400
 
     # Try Hermes first (full agent with tools)
     if check_hermes():
-        result = chat_via_hermesis(messages)
+        result = chat_via_hermesis(messages, custom_prompt)
         if result:
             return jsonify(result)
 
     # Fallback to direct OpenRouter
-    result = chat_via_openrouter(messages)
+    result = chat_via_openrouter(messages, custom_prompt)
     return jsonify(result)
 
 

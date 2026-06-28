@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import {
   Send, Mic, MicOff, Plus, MessageSquare, Settings, Trash2,
-  Zap, Menu, X, Sun, Moon, Sparkles
+  Zap, Menu, X, Sun, Moon, Sparkles, LayoutDashboard, Edit3,
+  Clock, Wifi, WifiOff, ChevronRight
 } from 'lucide-react'
 import './App.css'
 
@@ -39,6 +40,8 @@ function App() {
   const [apiUrl, setApiUrl] = useState(() => localStorage.getItem('jarvis-api-url') || 'http://localhost:8765')
   const [darkMode, setDarkMode] = useState(true)
   const [hermesOnline, setHermesOnline] = useState(false)
+  const [systemPrompt, setSystemPrompt] = useState(() => localStorage.getItem('jarvis-system-prompt') || 'You are J.A.R.V.I.S., an advanced AI assistant. Be helpful, precise, and slightly witty. Use tools when needed.')
+  const [dashboardUrl, setDashboardUrl] = useState(() => localStorage.getItem('jarvis-dashboard-url') || 'http://localhost:9119')
   const chatEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -71,6 +74,14 @@ function App() {
     localStorage.setItem('jarvis-api-url', apiUrl)
   }, [apiUrl])
 
+  useEffect(() => {
+    localStorage.setItem('jarvis-system-prompt', systemPrompt)
+  }, [systemPrompt])
+
+  useEffect(() => {
+    localStorage.setItem('jarvis-dashboard-url', dashboardUrl)
+  }, [dashboardUrl])
+
   // Auto-scroll
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -78,6 +89,27 @@ function App() {
 
   // Active session
   const activeSession = sessions.find(s => s.id === activeId)
+
+  // Group sessions by date
+  const groupedSessions = () => {
+    const today = new Date().toLocaleDateString()
+    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString()
+    const groups: { label: string; items: ChatSession[] }[] = []
+    const todayItems: ChatSession[] = []
+    const yesterdayItems: ChatSession[] = []
+    const olderItems: ChatSession[] = []
+
+    sessions.forEach(s => {
+      if (s.createdAt === today) todayItems.push(s)
+      else if (s.createdAt === yesterday) yesterdayItems.push(s)
+      else olderItems.push(s)
+    })
+
+    if (todayItems.length) groups.push({ label: 'Today', items: todayItems })
+    if (yesterdayItems.length) groups.push({ label: 'Yesterday', items: yesterdayItems })
+    if (olderItems.length) groups.push({ label: 'Earlier', items: olderItems })
+    return groups
+  }
 
   // New chat
   const newChat = useCallback(() => {
@@ -105,6 +137,11 @@ function App() {
     }
   }, [activeId])
 
+  // Open Hermes Dashboard
+  const openDashboard = useCallback(() => {
+    window.open(dashboardUrl, '_blank')
+  }, [dashboardUrl])
+
   // Send message
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return
@@ -113,7 +150,6 @@ function App() {
     let currentMessages: ChatMessage[] = []
 
     if (!sessionId) {
-      // Create new session
       const session: ChatSession = {
         id: Date.now().toString(),
         title: text.slice(0, 40),
@@ -134,7 +170,6 @@ function App() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
 
-    // Add user message
     setSessions(prev => prev.map(s =>
       s.id === sessionId
         ? {
@@ -148,7 +183,6 @@ function App() {
     setIsLoading(true)
 
     try {
-      // Call backend API
       const chatHistory = [...currentMessages, userMsg].map(m => ({
         role: m.role,
         content: m.content,
@@ -160,6 +194,7 @@ function App() {
         body: JSON.stringify({
           messages: chatHistory,
           model: 'openrouter/owl-alpha',
+          system_prompt: systemPrompt,
         }),
       })
 
@@ -180,7 +215,7 @@ function App() {
       const errMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `⚠️ Connection error: Unable to reach the AI server at ${apiUrl}.\n\nMake sure the backend server is running.\n\nError: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        content: `Connection error: Unable to reach the AI server at ${apiUrl}.\n\nMake sure the backend server is running.\n\nError: ${err instanceof Error ? err.message : 'Unknown error'}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       }
       setSessions(prev => prev.map(s =>
@@ -189,7 +224,7 @@ function App() {
     } finally {
       setIsLoading(false)
     }
-  }, [activeId, sessions, isLoading, apiUrl])
+  }, [activeId, sessions, isLoading, apiUrl, systemPrompt])
 
   // Voice input
   const toggleVoice = useCallback(() => {
@@ -224,44 +259,70 @@ function App() {
   // ─── RENDER ──────────────────────────────────────
   return (
     <div className={`app ${darkMode ? 'dark' : 'light'}`}>
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Sidebar */}
+      {/* ─── Sidebar ─── */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <button className="btn-new-chat" onClick={newChat}>
-            <Plus size={16} />
-            <span>New Chat</span>
-          </button>
+          <div className="sidebar-brand">
+            <Zap size={18} className="icon-accent" />
+            <span className="brand-text">JARVIS</span>
+          </div>
           <button className="btn-icon mobile-only" onClick={() => setSidebarOpen(false)}>
             <X size={18} />
           </button>
         </div>
 
+        <button className="btn-new-chat" onClick={newChat}>
+          <Plus size={16} />
+          <span>New Chat</span>
+        </button>
+
         <div className="sidebar-sessions">
           {sessions.length === 0 && (
-            <div className="sidebar-empty">No conversations yet</div>
+            <div className="sidebar-empty">
+              <MessageSquare size={24} />
+              <span>No conversations yet</span>
+            </div>
           )}
-          {sessions.map(session => (
-            <div
-              key={session.id}
-              className={`session-item ${activeId === session.id ? 'active' : ''}`}
-              onClick={() => { setActiveId(session.id); setSidebarOpen(false) }}
-            >
-              <MessageSquare size={14} />
-              <span className="session-title">{session.title}</span>
-              <button
-                className="btn-delete"
-                onClick={(e) => { e.stopPropagation(); deleteChat(session.id) }}
-              >
-                <Trash2 size={12} />
-              </button>
+          {groupedSessions().map(group => (
+            <div key={group.label} className="session-group">
+              <div className="group-label">{group.label}</div>
+              {group.items.map(session => (
+                <div
+                  key={session.id}
+                  className={`session-item ${activeId === session.id ? 'active' : ''}`}
+                  onClick={() => { setActiveId(session.id); setSidebarOpen(false) }}
+                >
+                  <MessageSquare size={14} />
+                  <span className="session-title">{session.title}</span>
+                  <button
+                    className="btn-delete"
+                    onClick={(e) => { e.stopPropagation(); deleteChat(session.id) }}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              ))}
             </div>
           ))}
         </div>
 
         <div className="sidebar-footer">
+          {/* Hermes Connection */}
+          <div className={`sidebar-connection ${hermesOnline ? 'connected' : 'disconnected'}`}>
+            {hermesOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
+            <span>{hermesOnline ? 'Hermes Connected' : 'Hermes Offline'}</span>
+          </div>
+
+          {/* Hermes Dashboard */}
+          <button className="btn-sidebar-action" onClick={openDashboard}>
+            <LayoutDashboard size={14} />
+            <span>Hermes Dashboard</span>
+            <ChevronRight size={12} className="chevron" />
+          </button>
+
+          {/* Settings */}
           <button className="btn-sidebar-action" onClick={() => setSettingsOpen(true)}>
             <Settings size={14} />
             <span>Settings</span>
@@ -269,9 +330,8 @@ function App() {
         </div>
       </aside>
 
-      {/* Main Chat Area */}
+      {/* ─── Main Chat Area ─── */}
       <main className="main">
-        {/* Top Bar */}
         <header className="chat-header">
           <button className="btn-icon" onClick={() => setSidebarOpen(true)}>
             <Menu size={20} />
@@ -279,11 +339,18 @@ function App() {
           <div className="header-center">
             <Zap size={16} className="icon-accent" />
             <span className="header-title">J.A.R.V.I.S.</span>
-            <span className="header-model">AI Assistant</span>
+            <span className={`header-status ${hermesOnline ? 'connected' : 'offline'}`}>
+              {hermesOnline ? 'Online' : 'Offline'}
+            </span>
           </div>
-          <button className="btn-icon" onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          <div className="header-actions">
+            <button className="btn-icon" onClick={newChat} title="New chat">
+              <Plus size={18} />
+            </button>
+            <button className="btn-icon" onClick={() => setDarkMode(!darkMode)} title="Toggle theme">
+              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
         </header>
 
         {/* Messages */}
@@ -376,7 +443,7 @@ function App() {
         </div>
       </main>
 
-      {/* Settings Modal */}
+      {/* ─── Settings Modal ─── */}
       {settingsOpen && (
         <div className="modal-overlay" onClick={() => setSettingsOpen(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -385,6 +452,20 @@ function App() {
               <button className="btn-icon" onClick={() => setSettingsOpen(false)}><X size={18} /></button>
             </div>
             <div className="modal-body">
+              {/* System Prompt */}
+              <div className="setting-group">
+                <label><Edit3 size={12} /> System Prompt</label>
+                <textarea
+                  className="system-prompt-input"
+                  value={systemPrompt}
+                  onChange={e => setSystemPrompt(e.target.value)}
+                  placeholder="Enter custom system prompt..."
+                  rows={4}
+                />
+                <small>Customize how JARVIS behaves. Changes apply to new messages.</small>
+              </div>
+
+              {/* API Server URL */}
               <div className="setting-group">
                 <label>API Server URL</label>
                 <input
@@ -395,6 +476,20 @@ function App() {
                 />
                 <small>Backend server URL for AI responses</small>
               </div>
+
+              {/* Dashboard URL */}
+              <div className="setting-group">
+                <label><LayoutDashboard size={12} /> Hermes Dashboard URL</label>
+                <input
+                  type="text"
+                  value={dashboardUrl}
+                  onChange={e => setDashboardUrl(e.target.value)}
+                  placeholder="http://localhost:9119"
+                />
+                <small>Opens in new tab when you click Hermes Dashboard</small>
+              </div>
+
+              {/* Theme */}
               <div className="setting-group">
                 <label>Theme</label>
                 <div className="theme-toggle">
@@ -402,6 +497,8 @@ function App() {
                   <button className={!darkMode ? 'active' : ''} onClick={() => setDarkMode(false)}>Light</button>
                 </div>
               </div>
+
+              {/* Clear Chats */}
               <div className="setting-group">
                 <label>Clear All Chats</label>
                 <button className="btn-danger" onClick={() => { setSessions([]); setActiveId(null); setSettingsOpen(false) }}>
