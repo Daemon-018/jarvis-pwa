@@ -38,8 +38,25 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [apiUrl, setApiUrl] = useState(() => localStorage.getItem('jarvis-api-url') || 'http://localhost:8765')
   const [darkMode, setDarkMode] = useState(true)
+  const [hermesOnline, setHermesOnline] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Check Hermes connection
+  useEffect(() => {
+    const checkHermes = async () => {
+      try {
+        const r = await fetch(`${apiUrl}/api/hermes/status`)
+        const data = await r.json()
+        setHermesOnline(data.online === true)
+      } catch {
+        setHermesOnline(false)
+      }
+    }
+    checkHermes()
+    const interval = setInterval(checkHermes, 15000)
+    return () => clearInterval(interval)
+  }, [apiUrl])
 
   // Save sessions
   useEffect(() => {
@@ -278,13 +295,25 @@ function App() {
               </div>
               <h1>J.A.R.V.I.S.</h1>
               <p>Your personal AI assistant — ask me anything</p>
+              <div className="connection-status">
+                <span className={`status-dot ${hermesOnline ? 'online' : 'offline'}`} />
+                <span>{hermesOnline ? 'Hermes Connected — Full Agent Mode' : 'Hermes Offline — Basic Chat Mode'}</span>
+              </div>
               <div className="quick-actions">
-                {['Write code', 'Explain a concept', 'Help me brainstorm', 'Summarize text'].map(q => (
-                  <button key={q} className="quick-btn" onClick={() => sendMessage(q)}>
-                    <Sparkles size={14} />
-                    {q}
-                  </button>
-                ))}
+                {hermesOnline
+                  ? ['Run terminal command', 'Search the web', 'Read a file', 'Write code'].map(q => (
+                      <button key={q} className="quick-btn" onClick={() => sendMessage(q)}>
+                        <Sparkles size={14} />
+                        {q}
+                      </button>
+                    ))
+                  : ['Explain a concept', 'Help me brainstorm', 'Write code', 'Summarize text'].map(q => (
+                      <button key={q} className="quick-btn" onClick={() => sendMessage(q)}>
+                        <Sparkles size={14} />
+                        {q}
+                      </button>
+                    ))
+                }
               </div>
             </div>
           ) : (
