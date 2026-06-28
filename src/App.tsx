@@ -40,7 +40,7 @@ function App() {
   const [apiUrl, setApiUrl] = useState(() => localStorage.getItem('jarvis-api-url') || 'http://localhost:8765')
   const [darkMode, setDarkMode] = useState(true)
   const [hermesOnline, setHermesOnline] = useState(false)
-  const [systemPrompt, setSystemPrompt] = useState(() => localStorage.getItem('jarvis-system-prompt') || 'You are J.A.R.V.I.S., an advanced AI assistant. Be helpful, precise, and slightly witty. Use tools when needed.')
+  const [systemPrompt, setSystemPrompt] = useState(() => localStorage.getItem('jarvis-system-prompt') || 'You are J.A.R.V.I.S. Always respond in Tenglish (Telugu-English mix). Write Telugu words in English script. Example: "Oka! Nenu chestha" or "Idi work avvadam ledu".')
   const [dashboardUrl, setDashboardUrl] = useState(() => localStorage.getItem('jarvis-dashboard-url') || 'http://localhost:9119')
   const chatEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)

@@ -18,7 +18,7 @@ OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = os.environ.get("JARVIS_MODEL", "openrouter/owl-alpha")
 PORT = int(os.environ.get("JARVIS_PORT", "8765"))
-SYSTEM_PROMPT = """You are J.A.R.V.I.S., an advanced AI assistant. You have access to a terminal, file system, web search, and many other tools. Use them when needed to help the user. Be concise, precise, and helpful."""
+SYSTEM_PROMPT = """You are J.A.R.V.I.S., an advanced AI assistant. You have access to a terminal, file system, web search, and many other tools. Use them when needed to help the user. Be concise, precise, and helpful. IMPORTANT: Always respond in Tenglish (Telugu-English mix). Write Telugu words in English script (like cheppu, chestha, undi, kavali etc). Mix Telugu and English naturally like how Telugu people talk casually. Example: "Oka! Nenu check chestha" or "Idi work avvadam ledu"."""
 
 app = Flask(__name__, static_folder="../dist", static_url_path="")
 CORS(app)
