@@ -192,6 +192,7 @@ body { font-family: var(--font-main); background: var(--bg-primary); color: var(
   font-size: 13px;
   cursor: pointer;
   transition: all var(--transition);
+  text-decoration: none;
 }
 .btn-sidebar-action:hover { background: var(--bg-hover); color: var(--text-primary); }
 

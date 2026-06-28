@@ -46,19 +46,27 @@ function App() {
   const inputRef = useRef<HTMLInputElement>(null)
   const touchStartRef = useRef<number | null>(null)
 
-  // Check Hermes connection
+  // Check Hermes connection (throttled - only update on change)
   useEffect(() => {
+    let prevOnline = false
     const checkHermes = async () => {
       try {
         const r = await fetch(`${apiUrl}/api/hermes/status`)
         const data = await r.json()
-        setHermesOnline(data.online === true)
+        const online = data.online === true
+        if (online !== prevOnline) {
+          prevOnline = online
+          setHermesOnline(online)
+        }
       } catch {
-        setHermesOnline(false)
+        if (prevOnline) {
+          prevOnline = false
+          setHermesOnline(false)
+        }
       }
     }
     checkHermes()
-    const interval = setInterval(checkHermes, 15000)
+    const interval = setInterval(checkHermes, 30000)
     return () => clearInterval(interval)
   }, [apiUrl])
 
@@ -352,11 +360,11 @@ function App() {
           </div>
 
           {/* Hermes Dashboard */}
-          <button className="btn-sidebar-action" onClick={openDashboard}>
+          <a className="btn-sidebar-action" href={dashboardUrl} target="_blank" rel="noopener noreferrer">
             <LayoutDashboard size={14} />
             <span>Hermes Dashboard</span>
             <ChevronRight size={12} className="chevron" />
-          </button>
+          </a>
 
           {/* Settings */}
           <button className="btn-sidebar-action" onClick={() => { setSettingsOpen(true); setSidebarOpen(false) }}>
