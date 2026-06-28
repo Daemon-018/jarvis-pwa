@@ -323,7 +323,7 @@ function App() {
           </button>
 
           {/* Settings */}
-          <button className="btn-sidebar-action" onClick={() => setSettingsOpen(true)}>
+          <button className="btn-sidebar-action" onClick={() => { setSettingsOpen(true); setSidebarOpen(false) }}>
             <Settings size={14} />
             <span>Settings</span>
           </button>
