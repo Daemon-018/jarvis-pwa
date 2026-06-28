@@ -388,6 +388,9 @@ function App() {
             </span>
           </div>
           <div className="header-actions">
+            <a className="btn-icon" href={dashboardUrl} target="_blank" rel="noopener noreferrer" title="Hermes Dashboard">
+              <LayoutDashboard size={18} />
+            </a>
             <button className="btn-icon" onClick={newChat} title="New chat">
               <Plus size={18} />
             </button>

@@ -308,6 +308,15 @@ body { font-family: var(--font-main); background: var(--bg-primary); color: var(
 }
 .btn-icon:hover { background: var(--bg-hover); color: var(--text-primary); }
 
+a.btn-icon {
+  text-decoration: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+a.btn-icon:hover { background: var(--bg-hover); color: var(--text-primary); }
+
 .mobile-only { display: none; }
 
 /* ─── Chat Messages ─── */
